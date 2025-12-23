@@ -68,10 +68,10 @@
     </style>
 
     <style name="TextAppearance.App.BottomNavigationView.Active" parent="TextAppearance.MaterialComponents.Caption">
-        <item name="android:textSize">0sp</item>
+        <item name="android:textSize">12sp</item>
     </style>
 
     <style name="TextAppearance.App.BottomNavigationView.Inactive" parent="TextAppearance.MaterialComponents.Caption">
-        <item name="android:textSize">0sp</item>
+        <item name="android:textSize">12sp</item>
     </style>
 </resources>

@@ -76,7 +76,6 @@ class ProfileFragment : Fragment() {
             usernameTextView.text = user.username
             birthdayTextView.text = user.birthday
 
-            // Загрузка аватара
             if (!user.avatarUrl.isNullOrEmpty()) {
                 val uri = Uri.parse(user.avatarUrl)
                 profileImage.load(uri) {
@@ -95,12 +94,10 @@ class ProfileFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        // Переход в настройки
         binding.settingsIcon.setOnClickListener {
             navigateToSettings()
         }
 
-        // Изменение фото профиля
         binding.profileImage.setOnClickListener {
             showImageSourceDialog()
         }
@@ -132,7 +129,6 @@ class ProfileFragment : Fragment() {
     }
 
     private fun openGoogleDrive() {
-        // Заглушка для Google Drive
         Snackbar.make(binding.root, "Google Drive not implemented", Snackbar.LENGTH_SHORT).show()
     }
 
@@ -142,12 +138,10 @@ class ProfileFragment : Fragment() {
     }
 
     private fun updateProfileImage(uri: Uri) {
-        // Обновляем данные пользователя
         val updatedUser = currentUser.copy(avatarUrl = uri.toString())
         userSession.saveUser(updatedUser)
         currentUser = updatedUser
 
-        // Обновляем изображение
         binding.profileImage.load(uri) {
             crossfade(true)
             transformations(CircleCropTransformation())
