@@ -66,6 +66,16 @@
             app:destination="@id/photoDetailFragment" />
     </fragment>
 
+    <fragment
+        android:id="@+id/photosFragment"
+        android:name="com.example.galleryproject.home.HomeFragment"
+        android:label="Photos"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_photos_to_photo_detail"
+            app:destination="@id/photoDetailFragment" />
+    </fragment>
+
 
     <fragment
         android:id="@+id/profileFragment"

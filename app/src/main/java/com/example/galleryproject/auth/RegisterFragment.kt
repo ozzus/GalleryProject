@@ -11,20 +11,21 @@ import android.view.ViewGroup
 import android.widget.DatePicker
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.galleryproject.R
 import com.example.galleryproject.databinding.FragmentRegisterBinding
-import com.example.galleryproject.session.UserSession
-import kotlinx.coroutines.launch
+import com.example.galleryproject.ui.state.UiState
+import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+@AndroidEntryPoint
 class RegisterFragment : Fragment() {
     private var _binding: FragmentRegisterBinding? = null
     private val binding get() = _binding!!
-    private lateinit var userSession: UserSession
+    private val viewModel: AuthViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,7 +33,6 @@ class RegisterFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentRegisterBinding.inflate(inflater, container, false)
-        userSession = UserSession(requireContext())
         return binding.root
     }
 
@@ -51,6 +51,21 @@ class RegisterFragment : Fragment() {
 
         binding.btnLogin.setOnClickListener {
             findNavController().navigate(R.id.action_register_to_login)
+        }
+
+        viewModel.registerState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Loading -> showLoading(true)
+                is UiState.Success -> {
+                    showLoading(false)
+                    showSuccessAndNavigateToLogin()
+                }
+                is UiState.Error -> {
+                    showLoading(false)
+                    showError("Registration failed: ${state.message}")
+                }
+                UiState.Idle -> showLoading(false)
+            }
         }
     }
 
@@ -130,33 +145,21 @@ class RegisterFragment : Fragment() {
     }
 
     private fun registerUser() {
-        showLoading(true)
+        val email = binding.etEmail.text.toString().trim()
+        val password = binding.etPassword.text.toString().trim()
+        val username = binding.etUsername.text.toString().trim()
+        val birthday = convertDateToApiFormat(binding.etBirthday.text.toString())
+        val phone = binding.etPhone.text?.toString()?.trim()
 
-        lifecycleScope.launch {
-            try {
-                val email = binding.etEmail.text.toString().trim()
-                val password = binding.etPassword.text.toString().trim()
-                val username = binding.etUsername.text.toString().trim()
-                val birthday = convertDateToApiFormat(binding.etBirthday.text.toString())
-                val phone = binding.etPhone.text?.toString()?.trim()
-
-                val response = RetrofitClient.getAuthApi().register(
-                    RegisterRequest(
-                        email = email,
-                        birthday = birthday,
-                        username = username,
-                        phone = phone,
-                        plainPassword = password
-                    )
-                )
-
-                showSuccessAndNavigateToLogin()
-            } catch (e: Exception) {
-                showError("Registration failed: ${e.message ?: "Unknown error"}")
-            } finally {
-                showLoading(false)
-            }
-        }
+        viewModel.register(
+            RegisterRequest(
+                email = email,
+                birthday = birthday,
+                username = username,
+                phone = phone,
+                plainPassword = password
+            )
+        )
     }
 
     private fun convertDateToApiFormat(date: String): String {

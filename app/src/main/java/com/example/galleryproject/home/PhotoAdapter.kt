@@ -9,9 +9,11 @@ import com.example.galleryproject.databinding.ItemPhotoBinding
 import com.example.galleryproject.models.Photo
 
 class PhotoAdapter(
-    private val photos: List<Photo>,
+    initialPhotos: List<Photo>,
     private val onItemClick: (Photo) -> Unit
 ) : RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
+
+    private var photos: List<Photo> = initialPhotos
 
     inner class PhotoViewHolder(private val binding: ItemPhotoBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -38,4 +40,9 @@ class PhotoAdapter(
     }
 
     override fun getItemCount() = photos.size
+
+    fun updatePhotos(newPhotos: List<Photo>) {
+        photos = newPhotos
+        notifyDataSetChanged()
+    }
 }

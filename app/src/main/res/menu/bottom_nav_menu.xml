@@ -8,6 +8,12 @@
         android:title="Home"
         app:showAsAction="ifRoom" /> <!-- Добавьте эту строку -->
 
+    <item
+        android:id="@+id/photosFragment"
+        android:icon="@drawable/ic_photos"
+        android:title="Photo"
+        app:showAsAction="ifRoom" />
+
 
     <item
         android:id="@+id/profileFragment"

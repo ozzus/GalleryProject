@@ -2,24 +2,24 @@ package com.example.galleryproject.auth
 
 import com.google.gson.annotations.SerializedName
 import retrofit2.http.Body
+import retrofit2.http.Field
+import retrofit2.http.FieldMap
+import retrofit2.http.FormUrlEncoded
+import retrofit2.http.Headers
 import retrofit2.http.POST
 
 interface AuthApiService {
+    @FormUrlEncoded
     @POST("token")
-    suspend fun login(@Body request: LoginRequest): AuthResponse
+    suspend fun login(@FieldMap fields: Map<String, String>): AuthResponse
 
+    @Headers(
+        "Content-Type: application/ld+json",
+        "Accept: application/ld+json"
+    )
     @POST("users")
     suspend fun register(@Body request: RegisterRequest): RegisterResponse
 }
-
-
-    data class LoginRequest(
-        val grant_type: String = "password",
-        val username: String,
-        val password: String,
-        val client_id: String = "your_client_id",
-        val client_secret: String = "your_client_secret"
-    )
 
 
     data class RegisterRequest(

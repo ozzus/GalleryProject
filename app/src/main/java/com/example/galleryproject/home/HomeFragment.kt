@@ -5,45 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.galleryproject.databinding.FragmentHomeBinding
-import com.example.galleryproject.models.Photo
 import androidx.navigation.fragment.findNavController
+import androidx.core.os.bundleOf
+import com.example.galleryproject.R
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
-
-    private val photos = listOf(
-        Photo(
-            id = 1,
-            imageUrl = "https://picsum.photos/id/10/300/300",
-            title = "House View",
-            author = "John Doe",
-            date = "23.08.2022",
-            description = "A cozy house in Italy...",
-            isPopular = false
-        ),
-        Photo(
-            id = 2,
-            imageUrl = "https://picsum.photos/id/20/300/300",
-            title = "Lake",
-            author = "Alice Smith",
-            date = "12.06.2022",
-            description = "Peaceful morning on the lake.",
-            isPopular = false
-        ),
-        Photo(
-            id = 3,
-            imageUrl = "https://picsum.photos/id/30/300/300",
-            title = "Mountain",
-            author = "Bob Ross",
-            date = "10.04.2022",
-            description = "A calm mountain view.",
-            isPopular = true
-        )
-    )
+    private val viewModel: HomeViewModel by viewModels()
 
 
     override fun onCreateView(
@@ -55,12 +30,21 @@ class HomeFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val adapter = PhotoAdapter(photos) { photo ->
-            val action = HomeFragmentDirections.actionHomeToPhotoDetail(photo)
-            findNavController().navigate(action)
+        val adapter = PhotoAdapter(emptyList()) { photo ->
+            val navController = findNavController()
+            val actionId = if (navController.currentDestination?.id == R.id.photosFragment) {
+                R.id.action_photos_to_photo_detail
+            } else {
+                R.id.action_home_to_photo_detail
+            }
+            navController.navigate(actionId, bundleOf("photo" to photo))
         }
         binding.recyclerView.layoutManager = GridLayoutManager(context, 2)
         binding.recyclerView.adapter = adapter
+
+        viewModel.photos.observe(viewLifecycleOwner) { photos ->
+            adapter.updatePhotos(photos)
+        }
     }
 
     override fun onDestroyView() {

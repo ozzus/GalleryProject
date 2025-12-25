@@ -1,6 +1,5 @@
 package com.example.galleryproject.auth
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Patterns
 import android.view.LayoutInflater
@@ -8,18 +7,18 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.galleryproject.R
 import com.example.galleryproject.databinding.FragmentLoginBinding
-import com.example.galleryproject.models.Client
-import com.example.galleryproject.session.UserSession
-import kotlinx.coroutines.launch
+import com.example.galleryproject.ui.state.UiState
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class LoginFragment : Fragment() {
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
-    private lateinit var userSession: UserSession
+    private val viewModel: AuthViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -27,7 +26,6 @@ class LoginFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
-        userSession = UserSession(requireContext())
         return binding.root
     }
 
@@ -38,38 +36,48 @@ class LoginFragment : Fragment() {
             val email = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
 
-            if (isValidEmail(email)) {
-                loginUser(email, password)
-            } else {
+            binding.tilEmail.error = null
+            binding.tilPassword.error = null
+
+            if (!isValidEmail(email)) {
                 binding.tilEmail.error = "Invalid email format"
+                return@setOnClickListener
             }
+
+            if (password.isBlank()) {
+                binding.tilPassword.error = "Password is required"
+                return@setOnClickListener
+            }
+
+            loginUser(email, password)
         }
 
         binding.btnRegister.setOnClickListener {
             findNavController().navigate(R.id.action_login_to_register)
         }
+
+        binding.btnGuest.setOnClickListener {
+            viewModel.loginAsGuest()
+        }
+
+        viewModel.loginState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Loading -> showLoading(true)
+                is UiState.Success -> {
+                    showLoading(false)
+                    navigateToProfile()
+                }
+                is UiState.Error -> {
+                    showLoading(false)
+                    showError("Login failed: ${state.message}")
+                }
+                UiState.Idle -> showLoading(false)
+            }
+        }
     }
 
     private fun loginUser(email: String, password: String) {
-        showLoading(true)
-
-        lifecycleScope.launch {
-            try {
-                val client = Client(
-                    username = "Demo User",
-                    birthday = "01/01/1990",
-                    email = email,
-                    phone = "+7(999)123-45-67"
-                )
-
-                // Сохраняем пользователя
-                userSession.saveUser(client)
-            } catch (e: Exception) {
-                showError("Login failed: ${e.message ?: "Unknown error"}")
-            } finally {
-                showLoading(false)
-            }
-        }
+        viewModel.login(email, password)
     }
 
     private fun isValidEmail(email: String): Boolean {
@@ -80,11 +88,6 @@ class LoginFragment : Fragment() {
         binding.progressBar.isVisible = isLoading
         binding.btnLogin.isEnabled = !isLoading
         binding.btnRegister.isEnabled = !isLoading
-    }
-
-    private fun saveAuthToken(token: String) {
-        val sharedPref = requireActivity().getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-        sharedPref.edit().putString("access_token", token).apply()
     }
 
     private fun navigateToProfile() {

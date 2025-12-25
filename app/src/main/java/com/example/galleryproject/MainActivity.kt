@@ -1,4 +1,4 @@
-package com.example.galleryproject
+﻿package com.example.galleryproject
 
 import android.os.Bundle
 import android.view.View
@@ -7,17 +7,23 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var bottomNavView: BottomNavigationView
     private lateinit var fragmentContainer: View
-
+    private lateinit var toolbar: MaterialToolbar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        toolbar = findViewById(R.id.top_app_bar)
+        setSupportActionBar(toolbar)
 
         bottomNavView = findViewById(R.id.bottom_nav)
         fragmentContainer = findViewById(R.id.nav_host_fragment)
@@ -26,11 +32,8 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
 
         setupActionBarWithNavController(navController)
-
-        // Связываем BottomNavigationView с NavController
         NavigationUI.setupWithNavController(bottomNavView, navController)
 
-        // Скрываем BottomNavigation на стартовых экранах
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
                 R.id.welcomeFragment,
